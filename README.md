@@ -2,6 +2,8 @@
 ## Task
 The goal of this group project is to develop and compare different computer vision methods
 for segmenting standing dead trees in aerial images of forests.
+The goal of this group project is to develop and compare different computer vision methods
+for segmenting standing dead trees in aerial images of forests.
 
 ## Dataset
 aerial multispectral image samples from the US, The data are manually annotated by our collaborator group of forest health experts.
@@ -10,6 +12,20 @@ aerial multispectral image samples from the US, The data are manually annotated 
 - The image samples have four-band data, including near-infrared (NIR) and RGB channels .png format.
 - consists of annotations for standing dead trees
 
+## Experiment Design
+### Baseline Setup
+#### Baseline model
+Vannila Unet
+- Architecture: Depth=4
+- Input
+    - image: (B, 4, 128, 128)
+    - label: (B, 1, 128, 128)
+- Output
+    - label: (B, 1, 128, 128)
+
+#### Data preprocess
+1. Patchify: extract image tiles with a size of 128 × 128 using a stride size of 64
+2. set mask > 0 as label
 ## Experiment Design
 ### Baseline Setup
 #### Baseline model
