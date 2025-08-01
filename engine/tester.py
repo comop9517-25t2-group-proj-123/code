@@ -2,134 +2,98 @@ import os
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-import random
+from sklearn.metrics import f1_score, precision_score, recall_score, jaccard_score
 
-from utils.postprocess import initial_segmentation_refinement, hybrid_filtering
-from utils.metrics import pixel_iou
+
+from utils.postprocess import apply_postprocess
 
 
 class Tester:
-    def __init__(self, model, device, cfg):
-        self.model = model
+    def __init__(self, model, dataloader, loss_fn, device, postprocess):
+        self.model = model.to(device)
+        self.dataloader = dataloader
+        self.loss_fn = loss_fn
         self.device = device
-        self.cfg = cfg
-        self.test_cfg = cfg['test']
+        self.postprocess = postprocess
 
-    def evaluate(self, test_loader):
+    def evaluate(self):
         self.model.eval()
-        
-        results = {}
-        results['baseline'] = {'total_iou': 0.0, 'count': 0}
-        
-        methods = self.test_cfg['postprocess_methods']
-        method_key = '+'.join(methods) if methods else 'none'
-        results[method_key] = {'total_iou': 0.0, 'count': 0}
-        
+        total_iou, total_precision, total_recall, total_f1, total_loss = 0, 0, 0, 0, 0
+        count = 0
+
         with torch.no_grad():
-            for i, (img, labels) in enumerate(test_loader):
+            for img, labels in self.dataloader:
                 img = img.to(self.device)
-                
+                labels = labels.to(self.device)
                 pred = self.model(img)
-                seg_pred = torch.sigmoid(pred[:, 0:1])
-                cent_pred = torch.sigmoid(pred[:, 1:2])
-                hyb_pred = pred[:, 2:3]
-                
-                seg_gt = labels[:, 0:1]
-                gt_bin = (seg_gt[0, 0] > 0.5).cpu().numpy()
-                
-                seg_base = (seg_pred[0, 0] > self.test_cfg['seg_thresh']).cpu().numpy()
-                iou_base = pixel_iou(seg_base, gt_bin)
-                results['baseline']['total_iou'] += iou_base
-                results['baseline']['count'] += 1
-                
-                seg_post = self._postprocess(seg_pred[0], cent_pred[0], hyb_pred[0])
-                iou_post = pixel_iou(seg_post, gt_bin)
-                results[method_key]['total_iou'] += iou_post
-                results[method_key]['count'] += 1
-        
-        avg_base = results['baseline']['total_iou'] / results['baseline']['count']
-        avg_post = results[method_key]['total_iou'] / results[method_key]['count']
-        
-        print(f"Baseline: {avg_base:.4f}")
-        print(f"{method_key}: {avg_post:.4f}")
-        
-        self._visualize_sample(test_loader)
-        
-        return {
-            'baseline_iou': avg_base,
-            'postprocessed_iou': avg_post,
-            'methods': methods
+                loss = self.loss_fn(pred, labels)
+
+                pred = torch.sigmoid(pred)
+                for p in self.postprocess:
+                    pred = apply_postprocess(pred, p)
+                pred = pred > 0.5
+                gt_mask = labels > 0.5
+
+                # Flatten for metric computation
+                pred_flat = pred.cpu().numpy().astype(np.uint8).flatten()
+                gt_flat = gt_mask.cpu().numpy().astype(np.uint8).flatten()
+
+                if gt_flat.sum() == 0 and pred_flat.sum() == 0:
+                    continue
+
+                total_iou += jaccard_score(gt_flat, pred_flat, zero_division=0)
+                total_precision += precision_score(gt_flat, pred_flat, zero_division=0)
+                total_recall += recall_score(gt_flat, pred_flat, zero_division=0)
+                total_f1 += f1_score(gt_flat, pred_flat, zero_division=0)
+                total_loss += loss.item()
+                count += 1
+
+        results = {
+            'mean_iou': total_iou / count,
+            'precision': total_precision / count,
+            'recall': total_recall / count,
+            'f1': total_f1 / count,
+            'loss': total_loss / count,
+            'count': count
         }
+        print(f"Eval: | mIoU | F1 | Precision | Recall |")
+        print(f"      | {results['mean_iou']:.3f} | {results['f1']:.3f} | {results['precision']:.3f} | {results['recall']:.3f} |")
+        return results
 
-    def _visualize_sample(self, test_loader, k=10):
+    def visualize_sample(self, k=10, vis_dir='output/visualizations'):
         self.model.eval()
-        output_dir = self.cfg['output'].get('vis_dir', 'output/visualizations')
-        os.makedirs(output_dir, exist_ok=True)
-        
-        method_str = ' + '.join(self.test_cfg['postprocess_methods']) if self.test_cfg['postprocess_methods'] else 'none'
-        
-        with torch.no_grad():
-            for i, (img, labels) in enumerate(test_loader):
-                if i >= k:
-                    break
-                    
-                img = img.to(self.device)
-                
-                pred = self.model(img)
-                seg_pred = torch.sigmoid(pred[:, 0:1])
-                cent_pred = torch.sigmoid(pred[:, 1:2])
-                hyb_pred = pred[:, 2:3]
-                
-                seg_base = (seg_pred[0, 0] > self.test_cfg['seg_thresh']).cpu().numpy()
-                seg_post = self._postprocess(seg_pred[0], cent_pred[0], hyb_pred[0])
-                
-                img_np = img[0].cpu().numpy().transpose(1, 2, 0)[:,:,:3]
-                gt_np = labels[0, 0].cpu().numpy()
-                
-                iou_base = pixel_iou(seg_base, gt_np)
-                iou_post = pixel_iou(seg_post, gt_np)
-                
-                fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-                
-                axes[0, 0].imshow(img_np)
-                axes[0, 0].set_title('Input')
-                axes[0, 0].axis('off')
-                
-                axes[0, 1].imshow(gt_np, cmap='gray')
-                axes[0, 1].set_title('GT')
-                axes[0, 1].axis('off')
-                
-                axes[1, 0].imshow(seg_base, cmap='gray')
-                axes[1, 0].set_title(f'Base ({iou_base:.3f})')
-                axes[1, 0].axis('off')
-                
-                axes[1, 1].imshow(seg_post, cmap='gray')
-                axes[1, 1].set_title(f'Post ({iou_post:.3f})')
-                axes[1, 1].axis('off')
-                
-                plt.suptitle(f'Sample {i+1} - {method_str}')
-                plt.tight_layout()
-                
-                save_path = os.path.join(output_dir, f'test_sample_{i+1:02d}.png')
-                plt.savefig(save_path, dpi=150, bbox_inches='tight')
-                plt.close()
-        
-        print(f"Saved {min(k, len(test_loader))} visualizations to {output_dir}")
+        os.makedirs(vis_dir, exist_ok=True)
+        method_str = ' + '.join(self.postprocess) if self.postprocess else 'none'
 
-    def _postprocess(self, seg, cent_map, hyb_map):
-        methods = self.test_cfg['postprocess_methods']
-        
-        s = seg.squeeze().cpu().detach().numpy()
-        h = hyb_map.squeeze().cpu().detach().numpy()
-        
-        mask = (s > self.test_cfg['seg_thresh']).astype(np.uint8)
-        
-        if 'initial_segmentation_refinement' in methods:
-            mask = initial_segmentation_refinement(
-                s, self.test_cfg['seg_thresh'], self.test_cfg['min_area']
-            )
-        
-        if 'hybrid_filtering' in methods:
-            mask = hybrid_filtering(mask, h, self.test_cfg['hyb_thresh'])
-        
-        return mask
+        count = 0
+        with torch.no_grad():
+            for img, labels in self.dataloader:
+                if count >= k:
+                    break
+                img = img.to(self.device)
+                labels = labels.to(self.device)
+                pred = self.model(img)
+                pred = torch.sigmoid(pred)
+                for p in self.postprocess:
+                    pred = apply_postprocess(pred, p)
+                # Prepare for visualization
+                img_np = img[0].cpu().numpy().transpose(1, 2, 0)  # [H, W, C]
+                pred_mask = pred[0, 0].cpu().numpy() if pred.ndim == 4 else pred[0].cpu().numpy()
+                gt_mask = labels[0, 0].cpu().numpy() if labels.ndim == 4 else labels[0].cpu().numpy()
+
+                fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+                axes[0].imshow(img_np[..., :3])  # Show RGB only
+                axes[0].set_title('Original Image')
+                axes[0].axis('off')
+                axes[1].imshow(pred_mask, cmap='gray')
+                axes[1].set_title(f'Prediction | Postprocess: {method_str}')
+                axes[1].axis('off')
+                axes[2].imshow(gt_mask, cmap='gray')
+                axes[2].set_title('Ground Truth')
+                axes[2].axis('off')
+                plt.tight_layout()
+                save_path = os.path.join(vis_dir, f'sample_{count+1:02d}.png')
+                plt.savefig(save_path, dpi=150)
+                plt.close(fig)
+                count += 1
+        print(f"Saved {count} visualizations to {vis_dir}")

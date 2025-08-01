@@ -26,20 +26,6 @@ Vannila Unet
 #### Data preprocess
 1. Patchify: extract image tiles with a size of 128 × 128 using a stride size of 64
 2. set mask > 0 as label
-## Experiment Design
-### Baseline Setup
-#### Baseline model
-Vannila Unet
-- Architecture: Depth=4
-- Input
-    - image: (B, 4, 128, 128)
-    - label: (B, 1, 128, 128)
-- Output
-    - label: (B, 1, 128, 128)
-
-#### Data preprocess
-1. Patchify: extract image tiles with a size of 128 × 128 using a stride size of 64
-2. set mask > 0 as label
 3. reorder to [C, H, W]
 4. normalize to [0, 1]
 5. optional crop / pad
@@ -52,7 +38,7 @@ Vannila Unet
 - Loss: Binary Cross-Entropy + Dice Loss (weighted combination)
 
 #### Evaluation Metrics
-test on full 300×300 image (table 2)
+test on patch 128*128 image (table 2)
 - Pixel IoU (Intersection over Union)
 - Precision
 - Recall
@@ -85,10 +71,10 @@ ResNet-50 ResNet-50 ViT-Base ViT-Base CLIP-Base DINOv2-Base
 |--------|-------|
 | Total Images | 444 scenes |
 | Spectral Bands | Red, Green, Blue, Near-Infrared (4 channels) |
-| Original Image Size | 300 × 300 pixels |
-| Number of Patches | 8,880 (20 patches per scene) |
+| Original Image Size | Around 300 × 300 pixels |
 | Patch Size | 128 × 128 pixels |
 | Patch Stride | 64 pixels |
+| Number of Patches | 8,880 (20 patches per scene) |
 | Patch Overlap (%) | ~50% overlapping pixels |
 | Augmentation | flip, rotation, brightness, contrast, multiplicative_noise, gamma |
 | Train/Test Split | 80% / 20% (355 / 89 scenes) |
@@ -96,13 +82,13 @@ ResNet-50 ResNet-50 ViT-Base ViT-Base CLIP-Base DINOv2-Base
 **Table 1 for Model HYPERPARAMETER VALUES**
 | Model | Params (M) | FLOPs (G) | Batch Size | Learning Rate | Optimizer |
 |-------|------------|-----------|------------|---------------|-----------|
-| U-Net | 31.4 | 12.8 | 16 | 1e-4 | Adam |
-| U-Net (w/o NIR) | 28.9 | 11.2 | 16 | 1e-4 | Adam |
-| Attention U-Net | 34.9 | 15.3 | 12 | 8e-5 | Adam |
-| ResU-Net | 42.1 | 18.7 | 12 | 1e-4 | AdamW |
-| TransU-Net | 105.3 | 45.2 | 8 | 5e-5 | AdamW |
-| U-Net (EfficientNet-B7) | 66.7 | 28.4 | 8 | 5e-5 | AdamW |
-| UNet++ (EfficientNet-B7) | 89.2 | 35.1 | 6 | 3e-5 | AdamW |
+| U-Net | 7.7 | 10.5 | 16 | 1e-4 | Adam |
+| U-Net (w/o NIR) | 7.7 | 10.4 | 16 | 1e-4 | Adam |
+| Attention U-Net | 34.9 | 16.7 | 16 | 1e-4 | Adam |
+| ResU-Net |  36.0 | 17.9 | 16 | 5e-5 | Adam |
+| TransU-Net | 140.8 | 12.0 | 16 | 5e-5 | Adam |
+
+
 | ResNet-50 (Linear) | 25.6 | 4.1 | 32 | 1e-3 | SGD |
 | ViT-Base (Linear) | 86.4 | 17.6 | 16 | 1e-3 | AdamW |
 | CLIP-Base (Linear) | 86.4 | 17.6 | 16 | 5e-4 | AdamW |
@@ -111,25 +97,25 @@ ResNet-50 ResNet-50 ViT-Base ViT-Base CLIP-Base DINOv2-Base
 **Tabel 2 for different model results**
 | Model | Pretrained | mIoU | F1 | Precision | Recall |
 |-------|------------|------|----|-----------| -------|
-| U-Net | No | 0.742 | 0.851 | 0.834 | 0.869 |
-| U-Net (w/o NIR) | No | 0.718 | 0.836 | 0.821 | 0.851 |
-| Attention U-Net | No | 0.751 | 0.857 | 0.845 | 0.870 |
-| ResU-Net | No | 0.758 | 0.862 | 0.851 | 0.874 |
-| TransU-Net | ImageNet | 0.769 | 0.870 | 0.863 | 0.877 |
-| U-Net (EfficientNet-B7) | ImageNet | 0.773 | 0.873 | 0.869 | 0.878 |
-| UNet++ (EfficientNet-B7) | ImageNet | 0.781 | 0.878 | 0.875 | 0.881 |
-| ResNet-50 (Linear) | ImageNet | 0.685 | 0.813 | 0.798 | 0.829 |
-| ViT-Base (Linear) | ImageNet | 0.701 | 0.825 | 0.812 | 0.838 |
-| CLIP-Base (Linear) | CLIP | 0.694 | 0.820 | 0.805 | 0.835 |
-| DINOv2-Base (Linear) | Self-supervised | 0.708 | 0.829 | 0.816 | 0.842 |
+| U-Net | No | 0.395 | 0.509 | 0.539 | 0.557 |
+| U-Net (w/o NIR) | No | 0.381 | 0.495 | 0.487 | 0.585 |
+| Attention U-Net | No | 0.394 | 0.503 | 0.591 | 0.506 |
+| ResU-Net | No | 0.387 | 0.502 | 0.566 | 0.528 |
+| TransU-Net | No | 0.381 | 0.492 | 0.590 | 0.491 |
+
+
+| ResNet-50 (Linear) | ImageNet | 
+| ViT-Base (Linear) | ImageNet | 
+| CLIP-Base (Linear) | CLIP | 
+| DINOv2-Base (Linear) | Self-supervised | 
 
 **Tabel 3 for Postprocessing**
-| Method | Setting Parameters | mIoU | mIoU Improvement | Processing Time (ms) |
+| Method | Threshold | Min Area | mIoU | mIoU Improvement |
 |--------|-------------------|------|------------------|---------------------|
-| None (Baseline) | threshold=0.5 | 0.742 | - | 0.1 |
-| Initial Segmentation Refinement | threshold=0.5, min_area=50 | 0.756 | +0.014 | 2.3 |
-| Hybrid Filtering | hyb_thresh=0.5 | 0.748 | +0.006 | 4.7 |
-| Combined | threshold=0.5, min_area=50, hyb_thresh=0.5 | 0.761 | +0.019 | 6.8 |
+| None (Baseline) | - | - | 0.395 | - |
+| Segmentation Refinement | 0.5 | 20 | 0.400 | +0.005 |
+| Segmentation Refinement | 0.7 | 20 | 0.401 | +0.006 |
+| Segmentation Refinement | 0.5 | 50 | 0.389 | -0.006 |
 
 ### Visualization
 - successful segmentations

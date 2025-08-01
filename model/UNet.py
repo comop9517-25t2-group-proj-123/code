@@ -1,5 +1,3 @@
-# Adapted from https://discuss.pytorch.org/t/unet-implementation/426
-
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -8,12 +6,12 @@ from torch import nn
 class UNet(nn.Module):
     def __init__(
         self,
-        in_channels=1,
-        n_classes=2,
-        depth=5,
+        in_channels=4,
+        n_classes=1,
+        depth=4,
         wf=6,
-        padding=False,
-        batch_norm=False,
+        padding=True,
+        batch_norm=True,
         up_mode='upconv',
     ):
         """
