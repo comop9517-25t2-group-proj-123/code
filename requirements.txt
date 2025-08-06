@@ -1,0 +1,9 @@
+torch
+scikit-learn
+tqdm
+transformers
+Pillow
+kagglehub
+matplotlib
+opencv-python
+ptflops

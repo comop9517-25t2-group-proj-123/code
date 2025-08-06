@@ -22,7 +22,7 @@ def get_config():
             'name': 'UNet',
             'in_channels': 3,
             'n_classes': 1,
-            # 'depth': 4,
+            'depth': 4,
         },
         
         # Trainer configuration

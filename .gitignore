@@ -1,0 +1,50 @@
+# Byte-code files
+*.pyc
+*.pyd
+*.pyo
+__pycache__/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+eggs/
+*.egg-info/
+.eggs/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs and Editors
+.idea/  # IntelliJ IDEA / PyCharm
+.vscode/ # VS Code
+*.sublime-project
+*.sublime-workspace
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Database files
+*.sqlite3
+*.db
+
+# Sensitive files
+.env.local
+.flaskenv
+instance/
