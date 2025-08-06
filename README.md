@@ -1,9 +1,4 @@
 # README
-## Task
-The goal of this group project is to develop and compare different computer vision methods
-for segmenting standing dead trees in aerial images of forests.
-The goal of this group project is to develop and compare different computer vision methods
-for segmenting standing dead trees in aerial images of forests.
 
 ## Getting Started
 ### Prerequisites
@@ -84,51 +79,99 @@ cfg = {
 - **HybridLoss**: Multi-task loss for segmentation + centroid detection + SDT
 
 ## Experiment Design
-### Baseline Setup
-#### Baseline model (in cofig)
-Vannila Unet
-- Architecture: Depth=4
-- Input
-    - image: (B, 4, 128, 128)
-    - label: (B, 1, 128, 128)
-- Output
-    - label: (B, 1, 128, 128)
 
-#### Data preprocess
-1. Patchify: extract image tiles with a size of 128 × 128 using a stride size of 64
-2. set mask > 0 as label
-3. reorder to [C, H, W]
-4. normalize to [0, 1]
-5. optional crop / pad
-6. Augmentation (for trainning data): flip, rotation, brightness, contrast, multiplicative_noise, gamma
-- The dataset is split into 80% for training, and 20% for testing
+### 1. Baseline Configuration
 
-#### Training configuration
-- a uniform training schedule of 10 epochs across models
-- learning rate, batch size, and optimizer used for each model specify in table 1
-- Loss: Binary Cross-Entropy + Dice Loss (weighted combination)
+#### 1.1 Model Architecture
+**Vanilla U-Net (Baseline)**
+- **Depth**: 4 encoder-decoder levels
+- **Input Channels**: 4 (RGB + NIR)
+- **Output Channels**: 1 (binary segmentation mask)
+- **Patch Size**: 128×128 pixels
+- **Architecture**: Standard U-Net with skip connections
 
-#### Evaluation Metrics
-test on patch 128*128 image (table 2)
-- Pixel IoU (Intersection over Union)
-- Precision
-- Recall
-- F1-Score
+**Input/Output Specifications:**
+```
+Input:  image (B, 4, 128, 128)  # Batch, RGBN channels, Height, Width
+        label (B, 1, 128, 128)  # Ground truth segmentation mask
+Output: pred  (B, 1, 128, 128)  # Predicted segmentation mask
+```
 
-### Model Comparison
-- Unet (w/o NIG channel)
-- Attention Unet
-- ResUNet
-- TransUnet
+#### 1.2 Data Preprocessing Pipeline
+1. **Patch Extraction**: Extract 128×128 tiles with stride=64 (50% overlap)
+2. **Label Binarization**: Convert mask values > 0 to binary labels
+3. **Channel Reordering**: Rearrange to [C, H, W] format
+4. **Normalization**: Scale pixel values to [0, 1] range
+5. **Optional Padding/Cropping**: Ensure consistent patch sizes
+6. **Data Augmentation** (training only):
+   - Horizontal/vertical flipping
+   - Random rotation
+   - Brightness adjustment
+   - Contrast adjustment
+   - Multiplicative noise
+   - Gamma correction
+7. **Train/Test Split**: 80% training, 20% testing
 
-### BCE loss vs Hybrid loss
+#### 1.3 Training Configuration
+- **Epochs**: 10 (uniform across all models)
+- **Loss Function**: BCE + Dice Loss (weighted combination)
+- **Optimizer**: Adam (model-specific learning rates in Table 1)
+- **Batch Size**: Model-specific (see Table 1)
+- **Evaluation**: Patch-level testing on 128×128 images
 
-### Postprocessing comparison
-**Initial Segmentation Refinement** (noise removal)
+#### 1.4 Evaluation Metrics
+All metrics computed at pixel level:
+- **IoU (Intersection over Union)**: `|A ∩ B| / |A ∪ B|`
+- **Precision**: `TP / (TP + FP)`
+- **Recall**: `TP / (TP + FN)`
+- **F1-Score**: `2 × (Precision × Recall) / (Precision + Recall)`
 
-### Visualization
-- successful segmentations
-- failed segmentations
+### 3. Experimental Protocol
+
+#### 3.1 Training Procedure
+1. **Data Loading**: Load patches with specified augmentations
+2. **Model Training**: Train for 10 epochs with early stopping
+
+#### 3.2 Evaluation Procedure
+1. **Model Loading**: Load best checkpoint for each model
+2. **Inference**: Generate predictions on test patches
+3. **Post-processing**: Apply refinement methods where specified
+4. **Metric Calculation**: Compute IoU, Precision, Recall, F1
+
+#### 3.3 Visualization and Analysis
+- Sample predictions vs ground truth
+- Success and failure cases
 
 ## References
-Libraries or code obtained from other sources should be clearly described
+#### U-Net
+- **Original Paper**: Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. *Medical Image Computing and Computer-Assisted Intervention* (MICCAI), 234-241.
+- **Implementation**: Based on PyTorch U-Net implementation from [pytorch-unet](https://github.com/jvanvugt/pytorch-unet)
+- **Code Reference**: [`model/UNet.py`](model/UNet.py)
+
+#### Attention U-Net
+- **Original Paper**: Oktay, O., Schlemper, J., Folgoc, L. L., et al. (2018). Attention U-Net: Learning Where to Look for the Pancreas. *Medical Image Computing and Computer-Assisted Intervention* (MICCAI), 304-312.
+- **Paper URL**: https://arxiv.org/pdf/1804.03999.pdf
+- **Implementation**: Custom PyTorch implementation with attention gates
+- **Code Reference**: [`model/AttentionUNet.py`](model/AttentionUNet.py)
+
+#### ResU-Net
+- **Original Paper**: Zhang, Z., Liu, Q., & Wang, Y. (2018). Road Extraction by Deep Residual U-Net. *IEEE Geoscience and Remote Sensing Letters*, 15(5), 749-753.
+- **Concept**: Combines residual connections from ResNet with U-Net architecture
+- **Implementation**: Custom implementation integrating ResNet blocks into U-Net
+- **Code Reference**: [`model/ResUNet.py`](model/ResUNet.py)
+
+#### TransU-Net
+- **Original Paper**: Chen, J., Lu, Y., Yu, Q., et al. (2021). TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation. *arXiv preprint* arXiv:2102.04306.
+- **Paper URL**: https://arxiv.org/abs/2102.04306
+- **Implementation**: Hybrid CNN-Transformer architecture with Vision Transformer encoder
+- **Code Reference**: [`model/TransUNet.py`](model/TransUNet.py)
+
+#### Hybrid Multi-Task Loss
+- **Original Paper**: Rougé, A. D., Stephenson, N. L., Das, A. J., et al. (2023). Dual-Task Learning for Dead Tree Detection and Segmentation with Hybrid Self-Attention U-Nets in Aerial Imagery. *Remote Sensing*, 15(15), 3882.
+- **GitHub Repository**: https://github.com/Global-Ecosystem-Health-Observatory/TreeMort
+- **Components**:
+  - Segmentation Loss: BCE + Dice for mask prediction
+  - Centroid Loss: MSE for tree center localization
+  - SDT Loss: Smooth L1 + L1 for signed distance transform
+- **Code Reference**: [`model/loss.py`](model/loss.py) - `HybridLoss` class
+
