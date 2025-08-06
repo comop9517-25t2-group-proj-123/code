@@ -1,4 +1,27 @@
 # README
+## Setup 
+
+1. Create virtual environment
+
+    ```python3 -m venv .venv```
+
+2. Install all dependencies
+
+
+    ```pip3 install -r requirements.txt```
+
+3. Install dataset manually and put in in data/dataset subdirectory. Create dataset subdirectory if necessary.
+
+4. Run the code
+
+
+    ```python3 main.py```
+
+
+
+
+
+
 ## Task
 The goal of this group project is to develop and compare different computer vision methods
 for segmenting standing dead trees in aerial images of forests.
