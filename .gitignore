@@ -1,3 +1,7 @@
+data/datasets
+__init__.py
+*.sh
+output/
 # Byte-code files
 *.pyc
 *.pyd

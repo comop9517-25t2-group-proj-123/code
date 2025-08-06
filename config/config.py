@@ -29,6 +29,7 @@ def get_config():
         'trainer': {
             'learning_rate': 1e-3,
             'epochs': 10,
+            'hybrid_loss': False
         },
         
         # Output configuration

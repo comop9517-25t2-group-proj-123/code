@@ -6,7 +6,7 @@ from data.loader import prepare_dataloaders
 from engine.trainer import Trainer
 from engine.tester import Tester
 from config.config import get_config
-from model.loss import BCEDiceLoss
+from model.loss import BCEDiceLoss, HybridLoss
 from utils.model_utils import get_model
 
 def main():
@@ -30,7 +30,7 @@ def main():
         model.parameters(), 
         lr=cfg['trainer']['learning_rate']
     )
-    loss_fn = BCEDiceLoss()
+    loss_fn = HybridLoss() if cfg['trainer']['hybrid_loss'] else BCEDiceLoss()
     train_loader, test_loader = prepare_dataloaders(cfg)
     trainer = Trainer(
         model=model,
