@@ -5,12 +5,83 @@ for segmenting standing dead trees in aerial images of forests.
 The goal of this group project is to develop and compare different computer vision methods
 for segmenting standing dead trees in aerial images of forests.
 
-## Dataset Desciption
-aerial multispectral image samples from the US, The data are manually annotated by our collaborator group of forest health experts.
-- 444 annotated scenes available with relatively smaller dimensions around 300 × 300 pixels.
-- Included scenes span multiple states with a ground resolution of 60 cm. 
-- The image samples have four-band data, including near-infrared (NIR) and RGB channels .png format.
-- consists of annotations for standing dead trees
+## Getting Started
+### Prerequisites
+- Python 3.9+
+- CUDA-compatible GPU (cuda 12.6 for experiment)
+
+**Create conda environment from YAML:**
+```bash
+conda env create -f environment.yml
+conda activate comp9517
+```
+
+### Dataset Setup
+
+1. **Download the dataset:**
+   - Download the USA_segmentation dataset
+   - Extract to `data/datasets/USA_segmentation/`
+
+2. **Expected directory structure:**
+```
+data/datasets/USA_segmentation/
+├── RGB_images/          # RGB aerial images
+│   ├── image_001.tif
+│   ├── image_002.tif
+│   └── ...
+├── NRG_images/          # Near-infrared, Red, Green images  
+│   ├── image_001.tif
+│   ├── image_002.tif
+│   └── ...
+└── masks/               # Binary segmentation masks
+    ├── image_001.tif
+    ├── image_002.tif
+    └── ...
+```
+
+### Running the Code
+
+#### Quick Start
+```bash
+python main.py
+```
+
+#### Configuration Options
+Edit `config/config.py` to modify training parameters:
+```python
+# Basic configuration example
+cfg = {
+    'dataset': {
+        'patch_size': 128,        # 64, 128, 256
+        'stride': 64,             # Overlap between patches
+        'nrg': True,              # Use NIR channel
+    },
+    'model': {
+        'name': 'UNet',           # UNet, AttentionUNet, ResUNet, TransUNet
+        'in_channels': 4,         # 3 (RGB) or 4 (RGB+NIR)
+        'n_classes': 1,           # 1 (segmetation mask) or 3 (multi-task)
+        'depth': 4,               # Model depth
+    },
+    'trainer': {
+        'learning_rate': 1e-3,    
+        'epochs': 10,
+        'hybrid_loss': False,     # True for multi-task learning
+    },
+    'dataloader': {
+        'train_batch_size': 16,   # Adjust based on GPU memory
+        'num_workers': 4,
+    }
+}
+```
+#### Available Models
+- **UNet**: Vanilla U-Net architecture
+- **AttentionUNet**: U-Net with attention gates
+- **ResUNet**: U-Net with residual connections
+- **TransUNet**: Transformer-based U-Net
+
+#### Loss Functions
+- **BCEDiceLoss** (default): Binary Cross-Entropy + Dice Loss
+- **HybridLoss**: Multi-task loss for segmentation + centroid detection + SDT
 
 ## Experiment Design
 ### Baseline Setup
@@ -45,25 +116,15 @@ test on patch 128*128 image (table 2)
 - F1-Score
 
 ### Model Comparison
-- Machine learning
 - Unet (w/o NIG channel)
 - Attention Unet
 - ResUNet
 - TransUnet
-- U-Net (EfficientNet-B7)
-- UNet++ (EfficientNet-B7)
 
-#### Pretrained models (linear probing)
-ResNet-50 ResNet-50 ViT-Base ViT-Base CLIP-Base DINOv2-Base
-- Minimal Linear Head
-- Apply heavy augmentation
+### BCE loss vs Hybrid loss
 
 ### Postprocessing comparison
-1. **None** (baseline threshold only)
-2. **Initial Segmentation Refinement** (noise removal)
-3. **Hybrid Filtering** (boundary refinement)
-4. **Combined** (method 2 + 3)
-
+**Initial Segmentation Refinement** (noise removal)
 
 ### Visualization
 - successful segmentations
@@ -71,8 +132,3 @@ ResNet-50 ResNet-50 ViT-Base ViT-Base CLIP-Base DINOv2-Base
 
 ## References
 Libraries or code obtained from other sources should be clearly described
-
-## Run code (Demonstration)
-- Include proper documentation about how to run the code
-- add tutorial jupyter notebooks for visualization
-    - the presentation must include a demonstration of the methods/software in action

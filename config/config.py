@@ -27,7 +27,7 @@ def get_config():
         
         # Trainer configuration
         'trainer': {
-            'learning_rate': 1e-3,
+            'learning_rate': 1e-4,
             'epochs': 10,
             'hybrid_loss': True
         },
