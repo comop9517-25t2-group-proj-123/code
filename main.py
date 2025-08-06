@@ -1,5 +1,5 @@
 import torch
-import kagglehub
+# import kagglehub
 import os
 
 from data.loader import prepare_dataloaders
@@ -10,13 +10,12 @@ from model.loss import BCEDiceLoss, HybridLoss
 from utils.model_utils import get_model
 
 def main():
-    path = kagglehub.dataset_download("meteahishali/aerial-imagery-for-standing-dead-tree-segmentation")
-    image_root_idr = os.path.join(path, 'USA_segmentation')
+    # path = kagglehub.dataset_download("meteahishali/aerial-imagery-for-standing-dead-tree-segmentation")
+    # image_root_idr = os.path.join(path, 'USA_segmentation')
     cfg = get_config()
-    cfg['dataset']['data_root'] = image_root_idr
+    # cfg['dataset']['data_root'] = image_root_idr
 
     print('Cfg: \n', cfg)
-    
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")

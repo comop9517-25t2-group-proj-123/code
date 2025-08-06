@@ -6,7 +6,7 @@ def get_config():
             'data_root': "data/datasets/USA_segmentation",
             'patch_size': 128,
             'stride': 64,
-            'nrg': False,
+            'nrg': True,
             'test_ratio': 0.2
         },
         
@@ -20,8 +20,8 @@ def get_config():
         # Model configuration
         'model': {
             'name': 'UNet',
-            'in_channels': 3,
-            'n_classes': 1,
+            'in_channels': 4,
+            'n_classes': 3,
             'depth': 4,
         },
         
@@ -29,7 +29,7 @@ def get_config():
         'trainer': {
             'learning_rate': 1e-3,
             'epochs': 10,
-            'hybrid_loss': False
+            'hybrid_loss': True
         },
         
         # Output configuration
