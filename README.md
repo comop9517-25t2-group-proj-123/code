@@ -10,7 +10,7 @@
 
     ```pip3 install -r requirements.txt```
 
-3. Install dataset manually and put in in data/dataset subdirectory. Create dataset subdirectory if necessary.
+3. Dataset will be downloaded automatically from kagglehub (https://www.kaggle.com/datasets/meteahishali/aerial-imagery-for-standing-dead-tree-segmentation?resource=download).
 
 4. Run the code
 

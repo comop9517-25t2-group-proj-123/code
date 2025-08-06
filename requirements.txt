@@ -7,3 +7,4 @@ kagglehub
 matplotlib
 opencv-python
 ptflops
+kagglehub
