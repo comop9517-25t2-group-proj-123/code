@@ -72,17 +72,17 @@ def main():
     postprocess = [k for k, v in cfg['postprocess_methods'].items() if v]
 
     # Create tester with config
-    tester = Tester(
-        model=model,
-        dataloader=test_loader,
-        loss_fn=loss_fn,
-        device=device,
-        postprocess=postprocess
-    )
+    # tester = Tester(
+    #     model=model,
+    #     dataloader=test_loader,
+    #     loss_fn=loss_fn,
+    #     device=device,
+    #     postprocess=postprocess
+    # )
 
     print(f"Using postprocessing methods: {postprocess}")
     
-    results = tester.evaluate()
+    # results = tester.evaluate()
     # tester.visualize_sample()
 
 if __name__ == "__main__":

@@ -14,6 +14,12 @@ def get_model_info(model, cfg):
         as_strings=False, 
         verbose=False
     )
+
+    if params is None:
+        print('Pretrained UNet')
+        return 
+    
+    
     params_m = params / 1e6 
     flops_g = flops / 1e9
 
@@ -26,12 +32,16 @@ def get_model(cfg):
     module = importlib.import_module(f"model.{model_name}")
     model_class = getattr(module, model_name)
     # Pass only the arguments your model needs
-    model = model_class(
-        in_channels=cfg['model']['in_channels'],
-        n_classes=cfg['model']['n_classes'],
-        depth=cfg['model']['depth'],
-    )
+    # model = model_class(
+    #     in_channels=cfg['model']['in_channels'],
+    #     n_classes=cfg['model']['n_classes'],
+    #     depth=cfg['model']['depth'],
+    # ) 
+
+    model = model_class()
+
     get_model_info(model, cfg)
+
 
     return model
 

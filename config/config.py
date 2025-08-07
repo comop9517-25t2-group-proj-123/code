@@ -6,7 +6,7 @@ def get_config():
             'data_root': "data/datasets/USA_segmentation",
             'patch_size': 128,
             'stride': 64,
-            'nrg': False,
+            'nrg': True,
             'test_ratio': 0.2
         },
         
@@ -19,10 +19,10 @@ def get_config():
         
         # Model configuration
         'model': {
-            'name': 'UNet',
-            'in_channels': 3,
-            'n_classes': 1,
-            'depth': 4,
+            'name': 'PretrainedEncoderDecoderModel',
+            'in_channels': 4,
+            # 'n_classes': 1,
+            # 'depth': 4,
         },
         
         # Trainer configuration
