@@ -52,3 +52,5 @@ htmlcov/
 .env.local
 .flaskenv
 instance/
+
+output

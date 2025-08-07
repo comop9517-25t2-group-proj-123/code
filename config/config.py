@@ -20,8 +20,8 @@ def get_config():
         # Model configuration
         'model': {
             'name': 'UNet',
-            'in_channels': 4,
-            'n_classes': 3,
+            'in_channels': 3,
+            'n_classes': 1,
             'depth': 4,
         },
         
