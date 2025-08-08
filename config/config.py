@@ -20,7 +20,7 @@ def get_config():
         # Model configuration
         'model': {
             'name': 'UNet',
-            'in_channels': 3,
+            'in_channels': 4,
             'n_classes': 1,
             'depth': 4,
         },
@@ -29,7 +29,7 @@ def get_config():
         'trainer': {
             'learning_rate': 1e-4,
             'epochs': 10,
-            'hybrid_loss': True
+            'hybrid_loss': False
         },
         
         # Output configuration

@@ -32,11 +32,11 @@ def get_model(cfg):
     module = importlib.import_module(f"model.{model_name}")
     model_class = getattr(module, model_name)
     # Pass only the arguments your model needs
-    # model = model_class(
-    #     in_channels=cfg['model']['in_channels'],
-    #     n_classes=cfg['model']['n_classes'],
-    #     depth=cfg['model']['depth'],
-    # ) 
+    model = model_class(
+        in_channels=cfg['model']['in_channels'],
+        n_classes=cfg['model']['n_classes'],
+        depth=cfg['model']['depth'],
+    ) 
 
     model = model_class()
 
