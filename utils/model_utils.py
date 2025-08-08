@@ -1,7 +1,6 @@
 import importlib
 
 from ptflops import get_model_complexity_info
-from transformers import AutoImageProcessor, MaskFormerForInstanceSegmentation
 import torch.nn as nn
 
 
@@ -44,24 +43,3 @@ def get_model(cfg):
 
 
     return model
-
-def get_pretrain_model(cfg):
-    cache_dir = '/srv/scratch/CRUISE/shawn/cache/huggingface'
-    processor = AutoImageProcessor.from_pretrained(cfg['model']['name'], cache_dir=cache_dir)
-    model = MaskFormerForInstanceSegmentation.from_pretrained(cfg['model']['name'], cache_dir=cache_dir, use_safetensors=True )
-    
-    # Freeze backbone and transformer
-    for param in model.model.pixel_level_module.parameters():
-        param.requires_grad = False
-    for param in model.model.transformer_module.parameters():
-        param.requires_grad = False
-    
-    # Replace class predictor for binary segmentation
-    model.class_predictor = nn.Linear(model.class_predictor.in_features, cfg['model']['n_classes'])
-    
-    get_model_info(model, cfg)
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    total_params = sum(p.numel() for p in model.parameters())
-    print(f"Trainable: {trainable_params:,}/{total_params:,} ({100*trainable_params/total_params:.2f}%)")
-    
-    return model, processor

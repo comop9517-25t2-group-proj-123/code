@@ -14,6 +14,7 @@ dependencies:
   - jupyter>=1.0.0
   - ipykernel>=6.25.0
   - tqdm>=4.65.0
+  - ptflops
   - pip
   - pip:
     - opencv-python>=4.8.0
